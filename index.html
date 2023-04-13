@@ -1,2 +1,131 @@
-<<!DOCTYPE html>
-<p> hello </p>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Authentication Demo</title>
+  </head>
+  <body>
+    <h1>Firebase Authentication Demo</h1>
+
+    <div id="signup-box">
+      <h2>Create an account</h2>
+      <form id="signup-form">
+        <label for="signup-email">Email:</label>
+        <input type="email" id="signup-email" name="email" required>
+        <label for="signup-password">Password:</label>
+        <input type="password" id="signup-password" name="password" required>
+        <button type="submit">Sign up</button>
+      </form>
+    </div>
+
+    <div id="signin-box">
+      <h2>Sign in to your account</h2>
+      <form id="signin-form">
+        <label for="signin-email">Email:</label>
+        <input type="email" id="signin-email" name="email" required>
+        <label for="signin-password">Password:</label>
+        <input type="password" id="signin-password" name="password" required>
+        <button type="submit">Sign in</button>
+      </form>
+    </div>
+
+    <div id="messages"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.6.5/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.5/firebase-auth.js"></script>
+    <script>
+      // Initialize Firebase
+      const firebaseConfig = {
+        apiKey: '<YOUR_API_KEY>',
+        authDomain: '<YOUR_AUTH_DOMAIN>',
+        projectId: '<YOUR_PROJECT_ID>',
+        storageBucket: '<YOUR_STORAGE_BUCKET>',
+        messagingSenderId: '<YOUR_MESSAGING_SENDER_ID>',
+        appId: '<YOUR_APP_ID>'
+      };
+      firebase.initializeApp(firebaseConfig);
+
+      // Get a reference to the Firebase auth service
+      const auth = firebase.auth();
+
+      // Get references to the signup and signin forms
+      const signupForm = document.getElementById('signup-form');
+      const signinForm = document.getElementById('signin-form');
+
+      // Add an event listener to the sign-up form submit button
+      signupForm.addEventListener('submit', (e) => {
+        e.preventDefault(); // prevent form submission
+
+        // Get the user's email and password from the form
+        const email = signupForm.email.value;
+        const password = signupForm.password.value;
+
+        // Create a new account for the user with Firebase
+        auth.createUserWithEmailAndPassword(email, password)
+          .then((userCredential) => {
+            // User account created successfully
+            const user = userCredential.user;
+            console.log(`User account created with email: ${user.email}`);
+            signupForm.reset();
+            hideBox('signup-box');
+            showMessage('success', 'Account created successfully. Please sign in to continue.');
+          })
+          .catch((error) => {
+            // An error occurred
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            console.error(`Error creating user account: ${errorMessage} (${errorCode})`);
+
+            if (errorCode === 'auth/email-already-in-use') {
+              showMessage('error', 'An account with this email address already exists.');
+            } else {
+              showMessage('error', 'An unknown error occurred. Please try again later.');
+            }
+          });
+      });
+
+      // Add an event listener to the sign-in form submit button
+      signinForm.addEventListener('submit', (e) => {
+e.preventDefault(); // prevent form submission
+    // Get the user's email and password from the form
+    const email = signinForm.email.value;
+    const password = signinForm.password.value;
+
+    // Sign in to the user's account with Firebase
+    auth.signInWithEmailAndPassword(email, password)
+      .then((userCredential) => {
+        // User signed in successfully
+        const user = userCredential.user;
+        console.log(`User signed in with email: ${user.email}`);
+        signinForm.reset();
+        hideBox('signin-box');
+        showMessage('success', 'You are now signed in. Welcome!');
+      })
+      .catch((error) => {
+        // An error occurred
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        console.error(`Error signing in user: ${errorMessage} (${errorCode})`);
+        showMessage('error', 'Incorrect email or password. Please try again.');
+      });
+  });
+
+  // Helper function to hide a sign-up or sign-in box
+  function hideBox(boxId) {
+    const box = document.getElementById(boxId);
+    if (box) {
+      box.style.display = 'none';
+    }
+  }
+
+  // Helper function to show a success or error message
+  function showMessage(type, text) {
+    const messages = document.getElementById('messages');
+    if (messages) {
+      messages.innerHTML = `<div class="${type}">${text}</div>`;
+    }
+  }
+</script>
+</body>
+</html>
